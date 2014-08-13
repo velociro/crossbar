@@ -74,3 +74,73 @@ class PendingAuthWampCra(PendingAuth):
       }
       self.challenge = json.dumps(challenge_obj)
       self.signature = auth.compute_wcs(key, self.challenge)
+
+
+
+
+class CrossbarAuthMethod:
+
+   ID = None
+
+   def __init__(self, router, debug = False):
+      """
+
+      :param router: The router this role exists on.
+      :type router: instance of :class:`crossbar.router.router.CrossbarRouter`
+      :param debug: Flag to turn on debug logging.
+      :type debug: bool
+      """
+      self.router = router
+      self.debug = debug
+
+
+
+class CrossbarAuthMethodAnonymous(CrossbarAuthMethod):
+
+   ID = 'anonymous'
+
+
+
+
+class CrossbarAuthMethodWampCra(CrossbarAuthMethod):
+
+   ID = 'wampcra'
+
+
+
+class CrossbarAuthMethodDynamic(CrossbarAuthMethod):
+
+   ID = 'custom'
+
+   def __init__(self, router, authorizer, debug = False):
+      """
+
+      :param router: The router this role exists on.
+      :type router: instance of :class:`crossbar.router.router.CrossbarRouter`
+      :param authenticator: The URI of the custom authentication procedure.
+      :type unicode
+      :param debug: Flag to turn on debug logging.
+      :type debug: bool
+      """
+      CrossbarRouterRole.__init__(self, router, uri, debug)
+      self._authorizer = authorizer
+      self._session = router._realm.session
+
+
+   def authorize(self, session, uri, action):
+      """
+      Authorize a session connected under this role to perform the given action
+      on the given URI.
+
+      :param session: The WAMP session that requests the action.
+      :type session: Instance of :class:`autobahn.wamp.protocol.ApplicationSession`
+      :param uri: The URI on which to perform the action.
+      :type uri: str
+      :param action: The action to be performed.
+      :type action: str
+
+      :return: bool -- Flag indicating whether session is authorized or not.
+      """
+      if self.debug:
+         log.msg("CrossbarRouterRoleDynamicAuth.authorize", self.uri, uri, action)
+      return self._session.call(self._authorizer, session._session_details, uri, action)

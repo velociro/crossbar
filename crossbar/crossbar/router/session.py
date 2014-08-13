@@ -31,7 +31,7 @@ import traceback
 from six.moves import urllib
 
 from twisted.python import log
-from twisted.internet.defer import Deferred, inlineCallbacks
+from twisted.internet.defer import Deferred, inlineCallbacks, returnValue
 
 from autobahn import util
 from autobahn.websocket import http
@@ -70,7 +70,34 @@ class CrossbarRouterSession(RouterSession):
       self._session_details = None
 
 
+   #@inlineCallbacks
    def onHello(self, realm, details):
+
+      try:
+
+         ## check if the realm the session wants to join actually exists
+         ##
+         if realm not in self._router_factory:
+            return types.Deny(ApplicationError.NO_SUCH_REALM, message = "no realm '{}' exists on this router".format(realm))
+
+         router = self._router_factory[realm]
+
+         authmethods = details.authmethods or ["anonymous"]
+
+         reply, pending = router.authenticate(self, authmethods, details.authid)
+
+         print "5"*10, reply, pending
+
+         #returnValue(reply)
+
+         return reply
+
+      except Exception as e:
+         traceback.print_exc()
+         return types.Deny(message = "internal error: {}".format(e))
+
+
+   def onHello2(self, realm, details):
 
       try:
 

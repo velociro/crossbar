@@ -138,6 +138,12 @@ class CrossbarRouter(Router):
       return authorized
 
 
+   def authenticate(self, session, authmethods, authid):
+      if True or self.debug:
+         log.msg("CrossbarRouter.authenticate: {} {}".format(authmethods, authid))
+      return types.Deny(message = "here we are"), None
+
+
 
 class CrossbarRouterFactory(RouterFactory):
    """

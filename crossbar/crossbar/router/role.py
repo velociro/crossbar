@@ -42,11 +42,12 @@ class CrossbarRouterRole:
 
    def __init__(self, router, uri, debug = False):
       """
-      Ctor.
 
+      :param router: The router this role exists on.
+      :type router: instance of :class:`crossbar.router.router.CrossbarRouter`
       :param uri: The URI of the role.
-      :type uri: str
-      :param debug: Enable debug logging.
+      :type uri: unicode
+      :param debug: Flag to turn on debug logging.
       :type debug: bool
       """
       self.router = router
@@ -167,11 +168,14 @@ class CrossbarRouterRoleDynamicAuth(CrossbarRouterRole):
 
    def __init__(self, router, uri, authorizer, debug = False):
       """
-      Ctor.
 
+      :param router: The router this role exists on.
+      :type router: instance of :class:`crossbar.router.router.CrossbarRouter`
       :param uri: The URI of the role.
-      :type uri: str
-      :param debug: Enable debug logging.
+      :type uri: unicode
+      :param authorizer: The URI of the custom authorizing procedure.
+      :type unicode
+      :param debug: Flag to turn on debug logging.
       :type debug: bool
       """
       CrossbarRouterRole.__init__(self, router, uri, debug)
