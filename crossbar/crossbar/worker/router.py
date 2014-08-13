@@ -40,8 +40,9 @@ from autobahn.twisted.wamp import ApplicationSession
 from autobahn.wamp.exception import ApplicationError
 
 from crossbar.router.session import CrossbarRouterSessionFactory, \
-                                    CrossbarRouterFactory, \
                                     CrossbarRouterServiceSession
+
+from crossbar.router.router import CrossbarRouterFactory
 
 from crossbar.router.protocol import CrossbarWampWebSocketServerFactory, \
                                      CrossbarWampRawSocketServerFactory
