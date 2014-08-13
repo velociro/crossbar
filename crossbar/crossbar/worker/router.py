@@ -181,12 +181,15 @@ class RouterRealm:
       :type id: str
       :param config: The realm configuration.
       :type config: dict
+      :param session: Realm service session.
+      :type session: obj
       """
       self.id = id
       self.config = config
       self.session = session
       self.created = datetime.utcnow()
       self.roles = {}
+      self.principals = {}
 
 
 
@@ -257,15 +260,21 @@ class RouterWorkerSession(NativeWorkerSession):
          'get_router_realms',
          'start_router_realm',
          'stop_router_realm',
+
          'get_router_realm_roles',
          'start_router_realm_role',
          'stop_router_realm_role',
+
+         'start_router_realm_principal',
+
          'get_router_components',
          'start_router_component',
          'stop_router_component',
+
          'get_router_transports',
          'start_router_transport',
          'stop_router_transport',
+
          'get_router_links',
          'start_router_link',
          'stop_router_link'
@@ -310,8 +319,18 @@ class RouterWorkerSession(NativeWorkerSession):
       :param schemas: An (optional) initial schema dictionary to load.
       :type schemas: dict
       """
-      if self.debug:
+      if True or self.debug:
          log.msg("{}.start_router_realm".format(self.__class__.__name__), id, config, schemas)
+
+      # from crossbar.router.userstore import UserStore
+      # us = UserStore()
+      # for user in config.get('users', []):
+      #    print user
+      #    #us.add(user['name'], user['role'], user['secret'], user.get('salt', None))
+      #    us.add(user['name'], user['role'], user['secret'])
+
+      # print "Y"*10, len(us._creds)
+
 
       realm = config['name']
       cfg = ComponentConfig(realm)
@@ -325,6 +344,23 @@ class RouterWorkerSession(NativeWorkerSession):
       self.factory.start_realm(rlm)
 
       self.session_factory.add(session, authrole = 'trusted')
+
+
+
+   def start_router_realm_principal(self, id, principal_id, config, details = None):
+      if True or self.debug:
+         log.msg("{}.start_router_realm_principal".format(self.__class__.__name__), id, principal_id, config)
+
+      if id not in self.realms:
+         raise ApplicationError("crossbar.error.no_such_object", "No realm with ID '{}'".format(id))
+
+      if principal_id in self.realms[id].principals:
+         raise ApplicationError("crossbar.error.already_exists", "A principal with ID '{}' already exists in realm with ID '{}'".format(principal_id, id))
+
+      #self.realms[id].principals[principal_id] = RouterRealmRole(role_id, config)
+
+      #realm = self.realms[id].config['name']
+      #self.factory.add_role(realm, config)
 
 
 

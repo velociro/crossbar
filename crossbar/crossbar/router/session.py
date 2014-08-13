@@ -48,6 +48,11 @@ from autobahn.twisted.wamp import RouterSession, RouterSessionFactory
 
 import crossbar
 
+from crossbar.router.userstore import UserStore
+
+
+from autobahn.wamp import auth
+
 
 
 class PendingAuth:
@@ -65,6 +70,35 @@ class PendingAuthPersona(PendingAuth):
       self.provider = provider
       self.audience = audience
       self.role = role
+
+
+
+class PendingAuthWampCra(PendingAuth):
+   """
+   Pending WAMP-CRA authentication.
+   """
+
+   def __init__(self, key, session, authid, authrole, authmethod, authprovider):
+      self.authid = authid
+      self.authrole = authrole
+      self.authmethod = authmethod
+      self.authprovider = authprovider
+
+      self.session = session
+      self.timestamp = util.utcnow()
+      self.nonce = util.newid()
+
+      challenge_obj = {
+         'authid': self.authid,
+         'authrole': self.authrole,
+         'authmethod': self.authmethod,
+         'authprovider': self.authprovider,
+         'session': self.session,
+         'nonce': self.nonce,
+         'timestamp': self.timestamp
+      }
+      self.challenge = json.dumps(challenge_obj)
+      self.signature = auth.compute_wcs(key, self.challenge)
 
 
 
@@ -97,6 +131,7 @@ class CrossbarRouterSession(RouterSession):
          if realm not in self._router_factory:
             return types.Deny(ApplicationError.NO_SUCH_REALM, message = "no realm '{}' exists on this router".format(realm))
 
+         print "444", self._router_factory[realm]
          ## perform authentication
          ##
          if self._transport._authid is not None:
@@ -182,6 +217,30 @@ class CrossbarRouterSession(RouterSession):
                         self._transport._authmethod = authmethod
 
                         return types.Accept(authid = authid, authrole = authrole, authmethod = self._transport._authmethod)
+
+
+                     ## "WAMP-CRA" authentication
+                     ##
+                     elif authmethod == "wampcra":
+
+                        cfg = self._transport_config['auth']['wampcra']
+
+                        # audience = cfg.get('audience', self._transport._origin)
+                        # provider = cfg.get('provider', "https://verifier.login.persona.org/verify")
+
+                        # ## authrole mapping
+                        # ##
+                        # authrole = cfg.get('role', 'anonymous')
+
+                        # ## check if role exists on realm anyway
+                        # ##
+                        # if not self._router_factory[realm].has_role(authrole):
+                        #    return types.Deny(ApplicationError.NO_SUCH_ROLE, message = "authentication failed - realm '{}' has no role '{}'".format(realm, authrole))
+
+                        # ## ok, now challenge the client for doing Mozilla Persona auth.
+                        # ##
+                        # self._pending_auth = PendingAuthPersona(provider, audience, authrole)
+                        # return types.Challenge("mozilla-persona")
 
 
                      ## "Cookie" authentication
@@ -624,7 +683,8 @@ class CrossbarRouterRoleDynamicAuth(CrossbarRouterRole):
 
 class CrossbarRouter(Router):
    """
-   Crossbar.io core router class.
+   Crossbar.io core router class. This provides routing of calls and events
+   with a given realm.
    """
 
    RESERVED_ROLES = ["trusted"]
@@ -635,7 +695,13 @@ class CrossbarRouter(Router):
 
    def __init__(self, factory, realm, options = None):
       """
-      Ctor.
+      
+      :param factory: The router factory this router was created by.
+      :type factory: instance of :class:`crossbar.router.session.CrossbarRouterFactory`
+      :param realm: The realm this router manages.
+      :type realm: unicode
+      :param options: Router options.
+      :type options: None or instance of :class:`autobahn.wamp.types.RouterOptions`
       """
       uri = realm.config['name']
       Router.__init__(self, factory, uri, options)

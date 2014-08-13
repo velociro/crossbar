@@ -342,6 +342,20 @@ class Node:
                      log.msg("{}: role '{}' started on realm '{}'".format(worker_logname, role_id, realm_id))
 
 
+                  ## add principals to realm
+                  ##
+                  principal_no = 1
+                  for principal in realm.get('principals', []):
+                     if 'id' in principal:
+                        principal_id = principal.pop('id')
+                     else:
+                        principal_id = 'principal{}'.format(principal_no)
+                        principal_no += 1
+
+                     yield self._controller.call('crossbar.node.{}.worker.{}.start_router_realm_principal'.format(self._node_id, worker_id), realm_id, principal_id, principal)
+                     log.msg("{}: principal '{}' started on realm '{}'".format(worker_logname, principal_id, realm_id))
+
+
                ## start components to run embedded in the router
                ##
                component_no = 1
