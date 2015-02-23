@@ -1,0 +1,12 @@
+image: bradrydzewski/python:2.7
+env:
+  - GOPATH=/var/cache/drone
+script:
+  - pip install -r requirements.txt
+services:
+  - redis
+notify:
+  email:
+    recipients:
+      - lexhung@gmail.com
+      - admin@fiisoft.com
