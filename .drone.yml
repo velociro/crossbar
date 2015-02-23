@@ -1,12 +1,3 @@
-image: bradrydzewski/python:3.3
-env:
-  - GOPATH=/var/cache/drone
+image: dockerfile/nginx
 script:
-  - pip install -r requirements.txt
-services:
-  - redis
-notify:
-  email:
-    recipients:
-      - lexhung@gmail.com
-      - admin@fiisoft.com
+  - echo hello world
