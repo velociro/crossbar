@@ -1,3 +1,5 @@
 image: dockerfile/nginx
+docker:
+  net: host
 script:
   - echo hello world
